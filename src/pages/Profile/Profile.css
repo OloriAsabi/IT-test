@@ -1,0 +1,43 @@
+
+.app_form_list{
+    line-height: 1.5;
+}
+.invalid {
+    border:1px solid red !important;
+    color: var(--color-red);
+   }
+   input {
+    outline: none;
+    box-shadow: none; 
+    width: 100%;
+    max-width: 425px;
+    font-size: 0.9em;
+    background: var(--color-white);
+    padding: 0.8em;
+    min-height: calc(0.9em + (0.8em * 2) + 0.6em);
+    border: 1px solid var(--color-gray);
+    border-radius: 10px;
+  }
+  input:focus{
+      background-color: var(--color-white);
+  }
+  .invalid-feedback, .text-danger{
+    color: var(--color-red);
+    display: block;
+  }
+  .form_control{
+    color: var(--color-red);
+    width: 100%;
+  }
+  .app-form-label{
+      display: block !important;
+      color: var(--color-gray);
+      margin: 10px;
+  }
+  .form-check{
+      margin: 10px;
+      font-weight: 900;
+  }
+  .link{
+    color: var(--color-blue);
+  }
