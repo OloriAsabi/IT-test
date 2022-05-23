@@ -1,6 +1,18 @@
 .App {
     text-align: center;
   }
+
+  .chart-container {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  @media (min-width: 900px) {
+    .chart-container {
+      flex-direction: row;
+    }
+  }
+  
   
   .App-logo {
     height: 40vmin;
