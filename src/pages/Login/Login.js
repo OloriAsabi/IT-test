@@ -1,17 +1,13 @@
 import React from 'react'
-import { useForm, Controller } from 'react-hook-form';
 import {
   Button,
   List,
   ListItem,
-  TextField,
   Typography,
 } from '@mui/material';
 import Form from '../../components/Form';
 import { Redirect , withRouter } from "react-router-dom";
 import { Link } from "react-router-dom";
-import { useCallback } from 'react';
-import  { app } from '../../services/api'
 import { useContext } from 'react';
 import { AuthContext, useAuth } from '../../services/auth';
 import { useState, useRef } from 'react';
@@ -22,15 +18,6 @@ const Login = ({ history }) => {
   const passwordRef = useRef()
   const { login } = useAuth()
   const [loading, setLoading] = useState(false)
-
-  // const {
-  //   handleSubmit,
-  //   formState: { errors },
-  //   control,
-  //   trigger
-  // } = useForm({
-  //   mode: "onChange"
-  // });
 
 
   async function submitHandler(e) {
