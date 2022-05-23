@@ -31,8 +31,8 @@ function Home() {
     ];
 
     const width = 500;
-    const height = 250;
-    const padding = 30;
+    const height = 200;
+    const padding = 20;
     const maxValue = 20; // Maximum data value
   
     const [chartdata,setChartdata] = useState(initialData)
