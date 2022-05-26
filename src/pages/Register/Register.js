@@ -7,6 +7,7 @@ import {
   Typography,
   FormControlLabel,
   Checkbox,
+  TextField,
 } from '@mui/material';
 import Form from '../../components/Form';
 import { withRouter } from "react-router-dom";
@@ -14,9 +15,8 @@ import { Link } from "react-router-dom";
 import  { auth } from '../../services/api'
 import { createUserWithEmailAndPassword} from 'firebase/auth';
 import { useRef } from 'react';
-import { useState } from 'react';
-
-
+import { useState } from 'react'
+import { Controller, useForm } from 'react-hook-form';
 
 const Register = ({ history }) => {
       const emailRef = useRef()
@@ -24,47 +24,25 @@ const Register = ({ history }) => {
       const passwordConfirmRef = useRef()
       const phoneRef = useRef()
       const nameRef = useRef();
-     const [errors, setErrors] = useState({});
 
+      const {
+        handleSubmit,
+        formState: { errors },
+        trigger, 
+        register, 
+        watch
+      } = useForm();
 
-  const validate = ({ emailRef, passwordRef, phoneRef, nameRef}) => {
-    const errors = {};
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
-    const phoneRegex =  /^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$/;
-    if (!nameRef.current.value) {
-      errors.nameRef = "Name is required!";
-    }
-    if (!emailRef.current.value) {
-      errors.emailRef = "Email is required!";
-    } else if (!regex.test(emailRef.current.value)) {
-      errors.emailRef= "This is not a valid email format!";
-    }
-    if (!passwordRef.current.value) {
-      errors.passwordRef = "Password is required";
-    } else if (passwordRef.current.value.length < 4) {
-      errors.passwordRef = "Password must be more than 4 characters";
-    } else if (passwordRef.cuurent.value.length > 20) {
-      errors.password = "Password cannot exceed more than 20 characters";
-    }
-    if (!phoneRef.current.value) {
-      errors.phoneRef ='Phone Number is Required!!!'
-    }else if (!phoneRegex.test(phoneRef.current.value)) {
-      errors.phoneRef = "Invalid phone no"
-    }
-    return errors;
-  };
-
- async function handleSubmit(e) {
-        e.preventDefault()
-       if (passwordRef.current.value !== passwordConfirmRef.current.value) {
-        return "Passwords do not match";
-      }
-      setErrors(
-        validate(emailRef.current.value, passwordRef.current.value, phoneRef.current.value, nameRef.cuurent.value)
-        );
+ async function onhandleSubmit(data) {
+      //  if(e) e.preventDefault();
+      //  if (passwordRef !== passwordConfirmRef) {
+      //   alert("Passwords don't match", { variant: 'error' });
+      //   return;
+      // }
+      console.log(data)
        try {
         await createUserWithEmailAndPassword(
-          auth, emailRef.current.value, passwordRef.current.value, nameRef.current.value)
+          auth, data.email, data.password, data.name, data.phone)
         history.push("/");
         alert ("User Created Successfully")
       } catch (error) {
@@ -73,44 +51,68 @@ const Register = ({ history }) => {
         alert(error);
       }
     }
-
   
   return (
     <div>
-      <Form onSubmit={handleSubmit} className="section__padding">
+      <Form onSubmit={handleSubmit(onhandleSubmit)} className="section__padding">
         <Typography component="h5" variant="h5" className='app_form_text'>
          Create an account
         </Typography>
        <List className='app_form'>
          <div className='app_form_list'>
-          <label className="app-form-label" htmlFor='email'>Your email address </label>      
+          <label className="app-form-label" htmlFor='email'>Your email address </label> 
                 <input
                   id="email"
                   name="email"
                   type= 'email'
-                  ref={emailRef}
-                  className={`form-control ${errors.emailRef && "invalid"}`}
+                  className={`form-control ${errors.email && "invalid"}`}
                  required={true} 
+                 {...register("email", { 
+                  required: "Email is Required!!!" ,
+                 pattern: {
+                   value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                   message: "Invalid email address",
+                 }})}
+                 error={Boolean(errors.email)}
+                 onKeyUp={() => {
+                   trigger("email");
+                 }}
                 ></input>
-               {errors.emailRef && (
-                <small className="text-danger">{errors.emailRef.message}</small>
-              )} 
+               {errors.email && (
+                     <small className="text-danger">{errors.email.message}</small>
+                 )}
             </div>
             <div className='app_form_list'>
             <label className="app-form-label">Your password</label>
                 <input
+                  name='password'
                   id="password"
                   type= 'password'
-                  name="password"
                   autoComplete='off'
-                  ref={passwordRef} 
-                  className={`form-control ${errors.passwordRef && "invalid"}`}
+                  className={`form-control ${errors.password && "invalid"}`}
                   required={true}
-                  minLength= {4}
-                  maxLength={20}
+                  {...register("password", { 
+                    required: "You must specify a password",
+                  pattern: {
+                    value: '^(?=.*?[A-Z])(?=(.*[a-z]){1,})(?=(.*[\d]){1,})(?=(.*[\W]){1,})(?!.*\s).{8,}$',
+                    message: "Password should contain atleast one number and one special character",
+                  },
+                  minLength: {
+                  value: 8,
+                  message: "Password must be more than 8 characters"
+                  },
+                  maxLength: {
+                    value: 20,
+                    message: "Password must be less than 20 characters"
+                    },
+                  })}
+                  onKeyUp={() => {
+                    trigger("password");
+                  }}
+                  error={Boolean(errors.password)}
                 ></input>
-             {errors.passwordRef && (
-                <small className="text-danger">{errors.passwordRef.message}</small>
+             {errors.password && (
+                <small className="text-danger">{errors.password.message}</small>
               )}
          </div>
          <div className='app_form_list'>
@@ -118,40 +120,64 @@ const Register = ({ history }) => {
                 <input
                   id="confirmPassword"
                   name="confirmPassword"
-                  type= 'password'
-                  ref={passwordConfirmRef} 
+                  type='password'
+                  {...register( 'confirmPassword', {
+                    validate: value =>
+                      value === watch("password", "") || "The passwords do not match"
+                  })}  
                   autoComplete='off'
                   onPaste={(e) =>{
                     e.preventDefault();
                     return false
                    }}
-                   className={`form-control ${errors.confirmPasswordRef && "invalid"}`}
+                   error={Boolean(errors.confirmPassword)}
+                   className={`form-control ${errors.confirmPassword && "invalid"}`}
                   required={true}
+                  onKeyUp={() => {
+                    trigger("confirmPassowrd");
+                  }}
                 />
-         </div>
-         <div className='app_form_list'>
-             <label className="app-form-label">Your full name</label>
-              <input
-                name='name'
-                type="text"
-                ref={nameRef}
-                className={`form-control ${errors.nameRef && "invalid"}`}
-                required={true}
-                />
-              {errors.nameRef && (
-                <small className="text-danger">{errors.nameRef.message}</small>
+                 {errors.confirmPassword && (
+                <small className="text-danger">{errors.confirmPassword.message}</small>
               )}
          </div>
          <div className='app_form_list'>
-         <label className="app-form-label">Your phone number</label>
+             <label className="app-form-label">Your full name</label>       
               <input
-                name='number'
+                name='name'
+                type="name"
+                className={`form-control ${errors.name && "invalid"}`}
+                required={true} 
+                defaultValue=""
+                {...register("name", { required: "Fullname is Required!!!" })}
+                onKeyUp={() => {
+                  trigger("name");
+                }}
+                />
+              {errors.name && (
+                <small className="text-danger">Fullname is Required!!!</small>
+              )}
+         </div>
+         <div className='app_form_list'>
+         <label className="app-form-label">Your phone number</label> 
+              <input
+                name='phone'
                 type="text"
-                ref={phoneRef}
-                className={`form-control ${errors.phoneRef && "invalid"}`}
+                className={`form-control ${errors.phone && "invalid"}`}
+                error={Boolean(errors.phone)}
+                {...register("phone", { 
+                  required: "Phone Number is Required!!!",
+                  pattern: {
+                    value: /^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$/,
+                    message: "Invalid phone no",
+                  },
+                })}
+                onKeyUp={() => {
+                  trigger("phone");
+                }}
               />
-              {errors.phoneRef && (
-                <small className="text-danger">{errors.phoneRef.message}</small>
+              {errors.phone && (
+                <small className="text-danger">Phone Number is Required!!!</small>
               )}
          </div> 
          <div className='app_form_list'>
@@ -161,7 +187,14 @@ const Register = ({ history }) => {
               id="selectCheckbox"
               control={<Checkbox />} 
               label="I read and agree Terms and Conditions"
-             required= {true}
+              required={true}
+              {...register("ChooseCb", {
+                validate: (e) => {
+                  if(!e)
+                  { 
+                    return alert('Please accept the terms and condition')
+                    }}
+              })}
             />
          </div>
           <ListItem className='app_form_list'>

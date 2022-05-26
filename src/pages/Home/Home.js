@@ -1,126 +1,129 @@
-import './Home.css';
-import { useEffect, useState , useRef } from 'react';
-import * as d3 from "d3"
-import { Button } from '@mui/material';
+import "./Home.css";
+import * as d3 from "d3";
+import {  useState , useEffect } from "react";
+import { Button } from "@mui/material";
 
-function Home() {
 
-    //  1] Setup Initial data and settings ------------//
-
-    const initialData = [
-      {
-        name: "Monday",
-        value: 10,
-      },
-      {
-        name: "Tuesday",
-        value: 3,
-      },
-      {
-        name: "Wednesday",
-        value: 9,
-      },
-      {
-        name: "thursday",
-        value: 7,
-      },
-      {
-        name: "Friday",
-        value: 7,
-      },
-    ];
-
-    const width = 500;
-    const height = 200;
-    const padding = 20;
-    const maxValue = 20; // Maximum data value
+const Home = () => {
   
-    const [chartdata,setChartdata] = useState(initialData)
+  const [barData,setBarData] = useState([
+    500, 150 ,170 ,180 ,200,475
+  ]);
+    const  drawChart = (barData) => {
+      //svg conatiner
+      const width = 500;
+      const height = 400;
+      var svg = d3.selectAll(".chart__bar")
+      .append("svg")
+      .attr("width",width)
+      .attr("height",height)
+      .style("overflow","visible")
+      .style("margin-bottom","20px")
+      .style("margin-top","10px");
+      // scaling
+      const scaleX = d3.scaleBand()
+      .domain(barData.map((val , i) => i))
+      .range([0 ,width])
+      
+  
+      const scaleY = d3.scaleLinear()
+      .domain([0 ,height])
+      .range([height ,0]);
+  
+  // axis
+      const  axisX = d3.axisBottom(scaleX)
+      .ticks(barData.length);
+      const  axisY = d3.axisLeft(scaleY)
+      .ticks(10);
+      svg.append("g")
+      .call(axisX)
+      .attr('transform',`translate(0 ,${height})`);
+  
+      svg.append("g")
+      .call(axisY);
+  
+      // svg data]
+      
+       svg.selectAll(".bar")
+      .data(barData)
+      .join("rect")
+      .attr("fill" ,"rgb(53, 122, 232)")
+      .attr("stroke" ,"#F5EFD")
+      .attr("x",(val ,i ) => scaleX(i))
+      .attr("y",scaleY)
+      .attr("width", scaleX.bandwidth())
+      .attr("height",val => height - scaleY(val));
+    } 
  
-    const svgRef= useRef()
+  const  handleClick = () =>{
+    d3.selectAll("svg").remove();
+    const  data = Array(6)
+                  .fill()
+                  .map(() => Math.floor(Math.random() *350));
+ 
+    setBarData(data);
+    setTimeout(() =>{
+    drawChart(barData);
+    },200);
+  }
+  useEffect(() =>{
+     //svg conatiner
+     const width = 500;
+     const height = 400;
+     var svg = d3.select("svg")
+     .attr("width",width)
+     .attr("height",height)
+     .style("overflow","visible")
+     .style("margin-bottom","10px")
+     .style("margin-top","15px");
+     // scaling
+     const scaleX = d3.scaleBand()
+     .domain(barData.map((val , i) => i))
+     .range([0 ,width])
+     
+     
+ 
+     const scaleY = d3.scaleLinear()
+     .domain([0 ,height])
+     .range([height ,0]);
+ 
+ // axis
+     const  axisX = d3.axisBottom(scaleX)
+     .ticks(barData.length);
+     const  axisY = d3.axisLeft(scaleY)
+     .ticks(10);
+     svg.append("g")
+     .call(axisX)
+     .attr('transform',`translate(0 ,${height})`);
+ 
+     svg.append("g")
+     .call(axisY);
+ 
+     // svg data]
+     
+      svg.selectAll(".bar")
+     .data(barData)
+     .join("rect")
+     .attr("fill" ,"#6eb5f2b8")
+     .attr("stroke" ,"#545454")
+     .attr("x",(val ,i ) => scaleX(i))
+     .attr("y",scaleY)
+     .attr("width", scaleX.bandwidth())
+     .attr("height",val => height - scaleY(val));
 
-  //  2] Setup random data generator and SVG canvas -//
-    const newData = () => chartdata.map(
-      function (d) {
-        d.value = Math.floor(
-          Math.random() * (maxValue + 1)
-        )
-        return d
-      } 
-    )
-
-      useEffect(
-        ()=>{ 
-          
-        //  3] Setup functions for Scales ------------------//
-          
-            //xscales
-            const xScale = d3.scaleBand()
-                            .domain(chartdata.map( (d) => d.name ))
-                            .rangeRound([(0+padding),(width - padding)])         
-
-            //Yscales
-            const yScale = d3.scaleLinear()
-                             .domain([0, d3.max( chartdata, function (d) {return d.value})])
-                             .range([(height - padding), (0 + padding)])
-
-        //  4] Setup functions to draw Lines ---------------//
-
-            const line = d3.line()
-                           .x((d)=> xScale(d.name))
-                           .y( (d)=>yScale(d.value) )
-                           .curve(d3.curveMonotoneX)        
-
-        //  5] Draw line        ---------------------------//
-           d3.select(svgRef.current)
-              .select('path')
-              .attr('d', (value) => line(chartdata))
-              .attr('fill','none')
-              .attr('stroke', 'white')
-
-        //  6] Setup functions to draw X and Y Axes --------//
-           const xAxis = d3.axisBottom(xScale)
-           const yAxis = d3.axisLeft(yScale)
-
-        //  7] Draw x and y Axes   -------------------------//
-           d3.select('#xaxis').remove()
-           d3.select(svgRef.current)
-              .append('g')
-              .attr('transform',`translate(0,${height - padding})`)
-              .attr('id','xaxis')
-              .call(xAxis)
-            
-          d3.select('#yaxis').remove()
-          d3.select(svgRef.current)
-              .append('g')
-              .attr('transform',`translate(${padding},0)`)
-              .attr('id','yaxis')
-              .call(yAxis)   
-
-        },[chartdata]
-      )
-
-
-
+  },[barData]);
   return (
     <div>
-      <header className="App-header App">
-
-        <svg id="chart" ref={svgRef} className="App-header App" viewBox="0 0 500 150">
-
-            <path d="" fill="none" stroke="white" strokeWidth="5" />
-            
-        </svg>
-        <p>
-          <Button variant="contained" className='btn' size='small' color="primary" 
-          type='button' onClick={()=> setChartdata(newData())}>
-                Click to refresh data
-          </Button>
-        </p>
-
-      </header>
+      <div className="chart__container">
+          <div className="chart__bar">
+              <svg id="sv" className="chart__svg"></svg>
+              <Button variant="contained" type="submit" size='samll' className="chart__button" color="primary"  onClick={handleClick}>
+             Click Here
+            </Button>
+          </div>
+      </div>
     </div>
-  );
+  )
 }
 
-export default Home;
+export default Home

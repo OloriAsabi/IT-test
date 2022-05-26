@@ -19,7 +19,6 @@ const Login = ({ history }) => {
   const { login } = useAuth()
   const [loading, setLoading] = useState(false)
 
-
   async function submitHandler(e) {
     e.preventDefault()
     try {
